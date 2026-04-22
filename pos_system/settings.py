@@ -15,7 +15,7 @@ def _split_env_list(value: str) -> list[str]:
     return [item.strip() for item in value.split(",") if item.strip()]
 
 
-ALLOWED_HOSTS = ["127.0.0.1", "localhost", "testserver"]
+ALLOWED_HOSTS = ["127.0.0.1", "localhost", "testserver", "caff-pos-production.up.railway.app"]
 ALLOWED_HOSTS += _split_env_list(os.environ.get("DJANGO_ALLOWED_HOSTS", ""))
 
 railway_public_domain = os.environ.get("RAILWAY_PUBLIC_DOMAIN")
