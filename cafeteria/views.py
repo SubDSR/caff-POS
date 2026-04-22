@@ -29,6 +29,67 @@ def _serialize_product(product: Product) -> dict:
     }
 
 
+def _redirect_to_index(request: HttpRequest, **overrides: str) -> HttpResponse:
+    return redirect(_index_url_with_state(request, **overrides))
+
+
+def _get_products(search_query: str, selected_category: str | None):
+    products = Product.objects.all()
+    if search_query:
+        products = products.filter(
+            Q(name__icontains=search_query) | Q(category__icontains=search_query)
+        )
+    if selected_category:
+        products = products.filter(category=selected_category)
+    return products
+
+
+def _add_or_increment_cart_item(cart: list[dict], product: Product) -> None:
+    for item in cart:
+        if item["id"] == str(product.pk):
+            item["quantity"] += 1
+            return
+
+    cart.append({**_serialize_product(product), "quantity": 1})
+
+
+def _update_cart_quantity(cart: list[dict], product_id: str, quantity: int) -> tuple[list[dict], str]:
+    updated_cart: list[dict] = []
+    removed_name = ""
+    for item in cart:
+        if item["id"] != product_id:
+            updated_cart.append(item)
+            continue
+
+        if quantity > 0:
+            updated_cart.append({**item, "quantity": quantity})
+        else:
+            removed_name = item["name"]
+
+    return updated_cart, removed_name
+
+
+def _remove_cart_item(cart: list[dict], product_id: str) -> tuple[list[dict], str]:
+    remaining_items: list[dict] = []
+    removed_name = ""
+    for item in cart:
+        if item["id"] == product_id:
+            removed_name = item["name"]
+            continue
+
+        remaining_items.append(item)
+
+    return remaining_items, removed_name
+
+
+def _cart_subtotal(cart: list[dict]) -> Decimal:
+    return sum((Decimal(str(item["price"])) * item["quantity"] for item in cart), Decimal("0"))
+
+
+def _get_first_cart_item_by_category(cart: list[dict], category: str) -> dict | None:
+    return next((item for item in cart if item["category"] == category), None)
+
+
 def login_view(request: HttpRequest) -> HttpResponse:
     if request.session.get("is_logged_in"):
         return redirect("cafeteria:index")
@@ -131,9 +192,10 @@ def _set_modal_feedback(request: HttpRequest, feedback_type: str, text: str) -> 
 
 
 def _pop_modal_feedback(request: HttpRequest) -> dict | None:
-    feedback = request.session.pop("modal_feedback", None)
-    request.session.modified = True
-    return feedback
+    if "modal_feedback" not in request.session:
+        return None
+
+    return request.session.pop("modal_feedback")
 
 
 def _build_repeat_cart_from_order(order: Order) -> list[dict]:
@@ -158,13 +220,7 @@ def index(request: HttpRequest) -> HttpResponse:
     selected_category = state["category"] or None
     modal = state["modal"]
 
-    products = Product.objects.all().order_by("id")
-    if search_query:
-        products = products.filter(
-            Q(name__icontains=search_query) | Q(category__icontains=search_query)
-        )
-    if selected_category:
-        products = products.filter(category=selected_category)
+    products = _get_products(search_query, selected_category)
 
     categories = [choice[0] for choice in Product.CATEGORY_CHOICES]
     last_order_id = _get_last_order_id(request)
@@ -190,7 +246,7 @@ def index(request: HttpRequest) -> HttpResponse:
         "selected_category": selected_category,
         "search_query": search_query,
         "modal": modal,
-        "promotions": Promotion.objects.all().order_by("id"),
+        "promotions": Promotion.objects.all(),
         "cart_items": cart_items,
         "cart_count": len(cart_items),
         "discount": discount,
@@ -208,19 +264,14 @@ def add_to_cart(request: HttpRequest, product_id: str) -> HttpResponse:
     product = Product.objects.filter(pk=product_id).first()
     if product is None:
         messages.error(request, "Producto no encontrado.")
-        return redirect(_index_url_with_state(request))
+        return _redirect_to_index(request)
 
     cart = _get_cart(request)
-    for item in cart:
-        if item["id"] == str(product.pk):
-            item["quantity"] += 1
-            break
-    else:
-        cart.append({**_serialize_product(product), "quantity": 1})
+    _add_or_increment_cart_item(cart, product)
 
     _set_cart(request, cart)
     messages.success(request, f"{product.name} agregado al carrito")
-    return redirect(_index_url_with_state(request))
+    return _redirect_to_index(request)
 
 
 def update_cart_item(request: HttpRequest, product_id: str) -> HttpResponse:
@@ -232,38 +283,24 @@ def update_cart_item(request: HttpRequest, product_id: str) -> HttpResponse:
     except ValueError:
         quantity = 1
 
-    cart = _get_cart(request)
-    updated_cart: list[dict] = []
-    for item in cart:
-        if item["id"] == product_id:
-            if quantity > 0:
-                updated_cart.append({**item, "quantity": quantity})
-            else:
-                messages.info(request, f"{item['name']} eliminado del carrito")
-        else:
-            updated_cart.append(item)
+    updated_cart, removed_name = _update_cart_quantity(_get_cart(request), product_id, quantity)
 
     _set_cart(request, updated_cart)
-    return redirect(_index_url_with_state(request))
+    if removed_name:
+        messages.info(request, f"{removed_name} eliminado del carrito")
+    return _redirect_to_index(request)
 
 
 def remove_cart_item(request: HttpRequest, product_id: str) -> HttpResponse:
     if request.method != "POST":
         return redirect("cafeteria:index")
 
-    cart = _get_cart(request)
-    removed_name = ""
-    remaining_items = []
-    for item in cart:
-        if item["id"] == product_id:
-            removed_name = item["name"]
-            continue
-        remaining_items.append(item)
+    remaining_items, removed_name = _remove_cart_item(_get_cart(request), product_id)
 
     _set_cart(request, remaining_items)
     if removed_name:
         messages.info(request, f"{removed_name} eliminado del carrito")
-    return redirect(_index_url_with_state(request))
+    return _redirect_to_index(request)
 
 
 def clear_cart(request: HttpRequest) -> HttpResponse:
@@ -271,7 +308,7 @@ def clear_cart(request: HttpRequest) -> HttpResponse:
         _set_cart(request, [])
         _set_discount(request, 0)
         messages.info(request, "Carrito anulado")
-    return redirect(_index_url_with_state(request))
+    return _redirect_to_index(request)
 
 
 def repeat_order(request: HttpRequest) -> HttpResponse:
@@ -281,17 +318,17 @@ def repeat_order(request: HttpRequest) -> HttpResponse:
     last_order_id = _get_last_order_id(request)
     if not last_order_id:
         messages.error(request, "No hay orden anterior para repetir")
-        return redirect(_index_url_with_state(request))
+        return _redirect_to_index(request)
 
     order = Order.objects.prefetch_related("items").filter(pk=last_order_id).first()
     if order is None or not order.items.exists():
         messages.error(request, "No hay orden anterior para repetir")
-        return redirect(_index_url_with_state(request))
+        return _redirect_to_index(request)
 
     _set_cart(request, _build_repeat_cart_from_order(order))
     _set_discount(request, 0)
     messages.success(request, "Orden repetida")
-    return redirect(_index_url_with_state(request))
+    return _redirect_to_index(request)
 
 
 def checkout(request: HttpRequest) -> HttpResponse:
@@ -300,7 +337,7 @@ def checkout(request: HttpRequest) -> HttpResponse:
 
     cart = _get_cart(request)
     if not cart:
-        return redirect(_index_url_with_state(request))
+        return _redirect_to_index(request)
 
     discount = _get_discount(request)
     totals = _cart_totals(cart, discount)
@@ -349,21 +386,21 @@ def apply_frequent_client_benefit(request: HttpRequest) -> HttpResponse:
     client = FrequentClient.objects.filter(pk=dni).first()
     if client is None:
         _set_modal_feedback(request, "error", "Cliente no registrado en el sistema")
-        return redirect(_index_url_with_state(request, modal="frequent-client"))
+        return _redirect_to_index(request, modal="frequent-client")
 
     if client.saldo_cafes <= 0:
         _set_modal_feedback(request, "warning", "Cliente sin saldo de cafés disponibles")
-        return redirect(_index_url_with_state(request, modal="frequent-client"))
+        return _redirect_to_index(request, modal="frequent-client")
 
-    coffee_in_cart = next((item for item in cart if item["category"] == Product.CATEGORY_COFFEE), None)
+    coffee_in_cart = _get_first_cart_item_by_category(cart, Product.CATEGORY_COFFEE)
     if coffee_in_cart is None:
         _set_modal_feedback(request, "error", "Debe tener al menos un café en el carrito")
-        return redirect(_index_url_with_state(request, modal="frequent-client"))
+        return _redirect_to_index(request, modal="frequent-client")
 
-    subtotal = sum((Decimal(str(item["price"])) * item["quantity"] for item in cart), Decimal("0"))
+    subtotal = _cart_subtotal(cart)
     if subtotal <= 0:
         _set_modal_feedback(request, "error", "El carrito está vacío")
-        return redirect(_index_url_with_state(request, modal="frequent-client"))
+        return _redirect_to_index(request, modal="frequent-client")
 
     coffee_discount_percentage = (Decimal(str(coffee_in_cart["price"])) / subtotal) * Decimal("100")
 
@@ -377,7 +414,7 @@ def apply_frequent_client_benefit(request: HttpRequest) -> HttpResponse:
         "success",
         f"Beneficio aplicado. Saldo restante: {client.saldo_cafes} café(s)",
     )
-    return redirect(_index_url_with_state(request, modal="frequent-client"))
+    return _redirect_to_index(request, modal="frequent-client")
 
 
 def apply_discount(request: HttpRequest) -> HttpResponse:
@@ -396,16 +433,16 @@ def apply_discount(request: HttpRequest) -> HttpResponse:
         messages.success(request, f"Descuento de {discount:.2f}% aplicado")
     else:
         _set_modal_feedback(request, "error", "El descuento debe estar entre 0 y 100")
-        return redirect(_index_url_with_state(request, modal="discount"))
+        return _redirect_to_index(request, modal="discount")
 
-    return redirect(_index_url_with_state(request))
+    return _redirect_to_index(request)
 
 
 def remove_discount(request: HttpRequest) -> HttpResponse:
     if request.method == "POST":
         _set_discount(request, 0)
         messages.info(request, "Descuento retirado")
-    return redirect(_index_url_with_state(request))
+    return _redirect_to_index(request)
 
 
 def apply_promotion(request: HttpRequest) -> HttpResponse:
@@ -416,8 +453,8 @@ def apply_promotion(request: HttpRequest) -> HttpResponse:
     promotion = Promotion.objects.filter(pk=promotion_id).first()
     if promotion is None:
         messages.error(request, "Promoción no encontrada")
-        return redirect(_index_url_with_state(request, modal="promotion"))
+        return _redirect_to_index(request, modal="promotion")
 
     _set_discount(request, promotion.discount)
     messages.success(request, f'Promoción "{promotion.name}" aplicada')
-    return redirect(_index_url_with_state(request))
+    return _redirect_to_index(request)

@@ -13,8 +13,7 @@
           <form method="post" action="{% url 'cafeteria:apply_promotion' %}">
             {% csrf_token %}
             <input type="hidden" name="promotion_id" value="{{ promotion.id }}">
-            <input type="hidden" name="q" value="{{ search_query }}">
-            {% if selected_category %}<input type="hidden" name="category" value="{{ selected_category }}">{% endif %}
+            {% include 'cafeteria/partials/preserved_state_fields.html' %}
             <button type="submit" class="w-full bg-gradient-to-r from-[#6F4E37]/10 to-[#D4A574]/10 hover:from-[#6F4E37]/20 hover:to-[#D4A574]/20 rounded-xl p-4 border border-[#6F4E37]/20 transition-all text-left">
               <div class="flex items-start gap-3">
                 <div class="w-12 h-12 rounded-full bg-[#6F4E37] flex items-center justify-center flex-shrink-0">

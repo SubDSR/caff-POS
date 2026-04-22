@@ -9,9 +9,7 @@
 
     <form method="post" action="{% url 'cafeteria:apply_discount' %}" class="px-6 py-4">
       {% csrf_token %}
-      <input type="hidden" name="q" value="{{ search_query }}">
-      {% if selected_category %}<input type="hidden" name="category" value="{{ selected_category }}">{% endif %}
-      <input type="hidden" name="modal" value="discount">
+      {% include 'cafeteria/partials/preserved_state_fields.html' with modal_value='discount' %}
 
       <div class="mb-4">
         <label for="discount" class="block text-[#3C2415] mb-2">Porcentaje de Descuento</label>
@@ -33,11 +31,7 @@
         </div>
       </div>
 
-      {% if modal_feedback %}
-        <div class="mb-4 p-3 rounded-lg flex items-center gap-2 {% if modal_feedback.type == 'success' %}bg-green-100 text-green-800{% elif modal_feedback.type == 'error' %}bg-red-100 text-red-800{% else %}bg-yellow-100 text-yellow-800{% endif %}">
-          <span>{{ modal_feedback.text }}</span>
-        </div>
-      {% endif %}
+      {% include 'cafeteria/partials/modal_feedback.html' %}
 
       <div class="flex gap-2">
         <button formaction="{% url 'cafeteria:remove_discount' %}" formmethod="post" formnovalidate class="flex-1 px-4 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition-colors">Quitar Descuento</button>
