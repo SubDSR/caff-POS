@@ -1,0 +1,9 @@
+{% if messages %}
+  <div class="server-messages{% if inline %} server-messages--inline{% endif %}">
+    {% for message in messages %}
+      <div class="server-message {% if message.tags == 'success' %}server-message--success{% elif message.tags == 'error' %}server-message--error{% else %}server-message--info{% endif %}">
+        {{ message }}
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}

@@ -1,0 +1,39 @@
+<div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+  <div class="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-[#6F4E37]/20">
+      <h3 class="text-[#3C2415] font-semibold">Cliente Frecuente</h3>
+      <a href="{{ base_state_url }}" class="text-[#6F4E37]/50 hover:text-[#6F4E37]" aria-label="Cerrar modal de cliente frecuente">
+        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </a>
+    </div>
+
+    <form method="post" action="{% url 'cafeteria:apply_frequent_client_benefit' %}" class="px-6 py-4">
+      {% csrf_token %}
+      <input type="hidden" name="q" value="{{ search_query }}">
+      {% if selected_category %}<input type="hidden" name="category" value="{{ selected_category }}">{% endif %}
+      <input type="hidden" name="modal" value="frequent-client">
+
+      <div class="mb-4">
+        <label for="dni" class="block text-[#3C2415] mb-2">DNI del Cliente</label>
+        <input id="dni" name="dni" type="text" class="w-full px-4 py-3 rounded-lg border border-[#6F4E37]/30 focus:outline-none focus:ring-2 focus:ring-[#6F4E37] bg-white" placeholder="Ingrese el DNI" inputmode="numeric" pattern="[0-9]{8}" maxlength="8" required>
+      </div>
+
+      {% if modal_feedback %}
+        <div class="mb-4 p-3 rounded-lg flex items-center gap-2 {% if modal_feedback.type == 'success' %}bg-green-100 text-green-800{% elif modal_feedback.type == 'error' %}bg-red-100 text-red-800{% else %}bg-yellow-100 text-yellow-800{% endif %}">
+          <span>{{ modal_feedback.text }}</span>
+        </div>
+      {% endif %}
+
+      <div class="bg-[#f5f5f5] rounded-lg p-4 mb-4 border border-[#6F4E37]/10">
+        <h4 class="text-[#3C2415] mb-2 font-medium">Información del Beneficio</h4>
+        <ul class="text-sm text-[#6F4E37]/70 space-y-1">
+          <li>• Descuento del 100% en un café</li>
+          <li>• Se descontará 1 café del saldo</li>
+          <li>• El beneficio se aplica automáticamente</li>
+        </ul>
+      </div>
+
+      <button type="submit" class="w-full bg-[#6F4E37] hover:bg-[#5a3d2b] text-white py-3 rounded-lg transition-colors">Aplicar Beneficio</button>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,35 @@
+<div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+  <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl mx-4 max-h-[80vh] flex flex-col">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-[#6F4E37]/20">
+      <h3 class="text-[#3C2415] font-semibold">Promociones Disponibles</h3>
+      <a href="{{ base_state_url }}" class="text-[#6F4E37]/50 hover:text-[#6F4E37]" aria-label="Cerrar modal de promociones">
+        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </a>
+    </div>
+
+    <div class="px-6 py-4 overflow-y-auto">
+      <div class="grid gap-4">
+        {% for promotion in promotions %}
+          <form method="post" action="{% url 'cafeteria:apply_promotion' %}">
+            {% csrf_token %}
+            <input type="hidden" name="promotion_id" value="{{ promotion.id }}">
+            <input type="hidden" name="q" value="{{ search_query }}">
+            {% if selected_category %}<input type="hidden" name="category" value="{{ selected_category }}">{% endif %}
+            <button type="submit" class="w-full bg-gradient-to-r from-[#6F4E37]/10 to-[#D4A574]/10 hover:from-[#6F4E37]/20 hover:to-[#D4A574]/20 rounded-xl p-4 border border-[#6F4E37]/20 transition-all text-left">
+              <div class="flex items-start gap-3">
+                <div class="w-12 h-12 rounded-full bg-[#6F4E37] flex items-center justify-center flex-shrink-0">
+                  <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.59 13.41 11 23l-9.59-9.59a2 2 0 0 1 0-2.82L10.59 1a2 2 0 0 1 2.82 0l9.18 9.59a2 2 0 0 1 0 2.82Z"></path><path d="M7 7h.01"></path></svg>
+                </div>
+                <div class="flex-1">
+                  <h4 class="text-[#3C2415] mb-1 font-medium">{{ promotion.name }}</h4>
+                  <p class="text-sm text-[#6F4E37]/70 mb-2">{{ promotion.conditions }}</p>
+                  <p class="text-green-600">Descuento: {{ promotion.discount }}%</p>
+                </div>
+              </div>
+            </button>
+          </form>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,65 @@
+{% load static %}
+<header class="bg-white border-b border-[#6F4E37]/20 shadow-sm">
+  <div class="px-6 py-4 flex items-center justify-between gap-4">
+    <div class="flex items-center gap-3">
+      <img src="{% static 'cafeteria/images/favicon.png' %}" alt="Casa Tueste" class="w-10 h-10">
+      <div>
+        <h2 class="text-[#3C2415] font-semibold">Casa Tueste</h2>
+        <p class="text-sm text-[#6F4E37]/70">Sistema POS</p>
+      </div>
+    </div>
+
+    <div class="flex-1 max-w-md">
+      <form method="get" action="{% url 'cafeteria:index' %}" class="relative">
+        {% if selected_category %}<input type="hidden" name="category" value="{{ selected_category }}">{% endif %}
+        <svg class="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-[#6F4E37]/50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="11" cy="11" r="8"></circle>
+          <path d="m21 21-4.35-4.35"></path>
+        </svg>
+        <input
+          type="text"
+          name="q"
+          value="{{ search_query }}"
+          placeholder="Buscar productos..."
+          class="w-full pl-10 pr-4 py-2 rounded-lg border border-[#6F4E37]/30 focus:outline-none focus:ring-2 focus:ring-[#6F4E37] bg-white"
+        >
+      </form>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <a href="{{ frequent_client_modal_url }}" class="flex items-center gap-2 px-4 py-2 bg-[#6F4E37] hover:bg-[#5a3d2b] text-white rounded-lg transition-colors" title="Cliente Frecuente">
+        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+          <path d="M12 8v8"></path>
+          <path d="M8.5 12h7"></path>
+        </svg>
+        <span class="hidden md:inline">Beneficios</span>
+      </a>
+
+      <a href="{{ discount_modal_url }}" class="flex items-center gap-2 px-4 py-2 bg-[#8B6F47] hover:bg-[#75593a] text-white rounded-lg transition-colors" title="Aplicar Descuento">
+        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M19 5 5 19"></path>
+          <circle cx="6.5" cy="6.5" r="2.5"></circle>
+          <circle cx="17.5" cy="17.5" r="2.5"></circle>
+        </svg>
+        <span class="hidden md:inline">Descuento</span>
+      </a>
+
+      <a href="{{ promotion_modal_url }}" class="flex items-center gap-2 px-4 py-2 bg-[#D4A574] hover:bg-[#c19460] text-white rounded-lg transition-colors" title="Promociones">
+        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M20.59 13.41 11 23l-9.59-9.59a2 2 0 0 1 0-2.82L10.59 1a2 2 0 0 1 2.82 0l9.18 9.59a2 2 0 0 1 0 2.82Z"></path>
+          <path d="M7 7h.01"></path>
+        </svg>
+        <span class="hidden md:inline">Promociones</span>
+      </a>
+
+      <a href="{% url 'cafeteria:logout' %}" class="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors" title="Cerrar Sesión" aria-label="Cerrar sesión">
+        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+          <polyline points="16 17 21 12 16 7"></polyline>
+          <line x1="21" y1="12" x2="9" y2="12"></line>
+        </svg>
+      </a>
+    </div>
+  </div>
+</header>
