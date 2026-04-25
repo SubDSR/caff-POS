@@ -3,14 +3,19 @@ from pathlib import Path
 
 import dj_database_url
 
+from .runtime import ensure_data_dir, get_bundle_dir, is_desktop_mode, is_frozen
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+
+BASE_DIR = get_bundle_dir()
+DATA_DIR = ensure_data_dir()
+DESKTOP_MODE = is_desktop_mode()
+FROZEN_APP = is_frozen()
 
 DEBUG = os.environ.get("DJANGO_DEBUG", "True").lower() == "true"
 
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "").strip()
 if not SECRET_KEY:
-    if DEBUG:
+    if DEBUG or DESKTOP_MODE or FROZEN_APP:
         SECRET_KEY = "django-insecure-pos-system-universidad"
     else:
         raise RuntimeError("DJANGO_SECRET_KEY must be set when DJANGO_DEBUG=False")
@@ -55,7 +60,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-if not DEBUG:
+if not DEBUG or DESKTOP_MODE or FROZEN_APP:
     MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")
 
 ROOT_URLCONF = "pos_system.urls"
@@ -63,7 +68,14 @@ ROOT_URLCONF = "pos_system.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / "templates"],
+        "DIRS": [
+            template_dir
+            for template_dir in (
+                BASE_DIR / "templates",
+                BASE_DIR / "cafeteria" / "templates",
+            )
+            if Path(template_dir).exists()
+        ],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -78,9 +90,15 @@ TEMPLATES = [
 WSGI_APPLICATION = "pos_system.wsgi.application"
 ASGI_APPLICATION = "pos_system.asgi.application"
 
+DATABASE_PATH = DATA_DIR / "db.sqlite3"
+DEFAULT_DATABASE_URL = f"sqlite:///{DATABASE_PATH.resolve().as_posix()}"
+
+if DESKTOP_MODE or FROZEN_APP:
+    os.environ["DATABASE_URL"] = DEFAULT_DATABASE_URL
+
 DATABASES = {
     "default": dj_database_url.config(
-        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+        default=DEFAULT_DATABASE_URL,
         conn_max_age=600,
         conn_health_checks=True,
     )
@@ -96,14 +114,17 @@ USE_TZ = True
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
-if not DEBUG:
+if not DEBUG or DESKTOP_MODE or FROZEN_APP:
     STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
+if not DEBUG and not DESKTOP_MODE and not FROZEN_APP:
     SECURE_HSTS_SECONDS = 3600
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
 
-SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-USE_X_FORWARDED_HOST = True
+if not DESKTOP_MODE and not FROZEN_APP:
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    USE_X_FORWARDED_HOST = True
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
