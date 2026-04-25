@@ -1,9 +1,43 @@
 {% if messages %}
-  <div class="server-messages{% if inline %} server-messages--inline{% endif %}">
+  <div class="server-messages{% if inline %} server-messages--inline{% endif %}" data-auto-dismiss-messages>
     {% for message in messages %}
       <div class="server-message {% if message.tags == 'success' %}server-message--success{% elif message.tags == 'error' %}server-message--error{% else %}server-message--info{% endif %}">
         {{ message }}
       </div>
     {% endfor %}
   </div>
+  <script>
+    (() => {
+      const container = document.currentScript.previousElementSibling;
+      if (!container || !container.matches('[data-auto-dismiss-messages]')) {
+        return;
+      }
+
+      const dismissDelayMs = 4000;
+      const transitionDurationMs = 220;
+
+      for (const message of container.querySelectorAll('.server-message')) {
+        window.setTimeout(() => {
+          let removed = false;
+
+          const removeMessage = () => {
+            if (removed) {
+              return;
+            }
+
+            removed = true;
+            message.remove();
+
+            if (!container.querySelector('.server-message')) {
+              container.remove();
+            }
+          };
+
+          message.addEventListener('transitionend', removeMessage, { once: true });
+          message.classList.add('server-message--closing');
+          window.setTimeout(removeMessage, transitionDurationMs + 50);
+        }, dismissDelayMs);
+      }
+    })();
+  </script>
 {% endif %}

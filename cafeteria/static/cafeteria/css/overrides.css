@@ -18,6 +18,13 @@
   padding: 0.75rem 1rem;
   color: #ffffff;
   box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  opacity: 1;
+  transition: opacity 220ms ease, transform 220ms ease;
+}
+
+.server-message--closing {
+  opacity: 0;
+  transform: translateY(-0.25rem);
 }
 
 .server-message--success {
