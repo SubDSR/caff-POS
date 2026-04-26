@@ -21,9 +21,8 @@ python manage.py collectstatic --noinput
 El archivo `desktop.spec` ya incluye:
 
 - `main.py` como punto de entrada
-- `db.sqlite3` como base inicial
 - `staticfiles/` como activos empaquetados
-- recoleccion de modulos de Django, `waitress`, `pywebview` y la app `cafeteria`
+- recoleccion de modulos de Django, `PyMySQL`, `waitress`, `pywebview` y la app `cafeteria`
 
 Compila asi:
 
@@ -38,13 +37,23 @@ El ejecutable quedara en `dist\CaffPOS.exe`.
 - inicia `waitress` en `127.0.0.1` con un puerto libre
 - abre la app en una ventana nativa usando `pywebview`
 - usa `/health/` para comprobar que el servidor esta listo antes de abrir la ventana
-- copia `db.sqlite3` desde el bundle solo en el primer inicio
-- guarda la base persistente en `%LOCALAPPDATA%\CaffPOS\db.sqlite3`
-- ejecuta `migrate` al iniciar para mantener el esquema actualizado
+- crea `db.sqlite3` en `%LOCALAPPDATA%\CaffPOS\db.sqlite3` para sesiones y metadatos internos de Django
+- ejecuta `migrate` al iniciar para mantener actualizado ese esquema interno
+- consulta los datos funcionales del POS en MySQL usando `PyMySQL`
 
 Los errores de arranque quedan registrados en `%LOCALAPPDATA%\CaffPOS\logs\desktop.log`.
 
 `_MEIPASS` se usa solo para leer archivos empaquetados temporales; la base de datos persistente nunca se guarda ahi.
+
+## Variables de entorno MySQL
+
+Si no defines variables, la app intentara conectarse con estos valores por defecto:
+
+- `MYSQL_HOST=127.0.0.1`
+- `MYSQL_PORT=3306`
+- `MYSQL_USER=root`
+- `MYSQL_PASSWORD=170424`
+- `MYSQL_DATABASE=casa_tueste`
 
 ## Alternativa con Nuitka
 
@@ -55,4 +64,4 @@ pip install nuitka ordered-set zstandard
 python -m nuitka --standalone --onefile --windows-console-mode=disable --enable-plugin=tk-inter --output-filename=CaffPOS.exe main.py
 ```
 
-Con Nuitka tendras que agregar manualmente `db.sqlite3` y `staticfiles/` como datos incluidos si no detecta todo automaticamente.
+Con Nuitka tendras que agregar manualmente `staticfiles/` como datos incluidos si no detecta todo automaticamente.

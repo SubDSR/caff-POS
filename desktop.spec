@@ -6,7 +6,7 @@ from PyInstaller.utils.hooks import collect_all
 
 
 project_root = Path(SPECPATH)
-datas = [(str(project_root / "db.sqlite3"), "."), (str(project_root / "staticfiles"), "staticfiles")]
+datas = [(str(project_root / "staticfiles"), "staticfiles")]
 
 for source_path, target_path in (
     (project_root / "cafeteria" / "templates", "cafeteria/templates"),
@@ -18,7 +18,7 @@ for source_path, target_path in (
 binaries = []
 hiddenimports = []
 
-for package_name in ("django", "waitress", "webview", "whitenoise"):
+for package_name in ("django", "pymysql", "waitress", "webview", "whitenoise"):
     package_datas, package_binaries, package_hiddenimports = collect_all(package_name)
     datas += package_datas
     binaries += package_binaries

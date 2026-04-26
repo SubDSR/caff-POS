@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import os
 import logging
-import shutil
 import socket
 import sys
 import threading
@@ -10,7 +9,7 @@ import time
 import urllib.error
 import urllib.request
 
-from pos_system.runtime import ensure_data_dir, get_bundle_dir
+from pos_system.runtime import ensure_data_dir
 
 
 APP_TITLE = "Caff POS"
@@ -56,20 +55,10 @@ def _resolve_port() -> int:
     return _find_free_port()
 
 
-def _copy_seed_database() -> None:
-    bundle_db_path = get_bundle_dir() / "db.sqlite3"
-    data_db_path = ensure_data_dir() / "db.sqlite3"
-
-    if not data_db_path.exists() and bundle_db_path.exists():
-        shutil.copy2(bundle_db_path, data_db_path)
-
-
 def _prepare_django() -> None:
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "pos_system.settings")
     os.environ.setdefault("POS_DESKTOP_MODE", "True")
     os.environ.setdefault("DJANGO_DEBUG", "False")
-
-    _copy_seed_database()
 
     import django
     from django.core.management import call_command

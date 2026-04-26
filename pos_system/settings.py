@@ -104,6 +104,12 @@ DATABASES = {
     )
 }
 
+MYSQL_HOST = os.environ.get("MYSQL_HOST", "127.0.0.1").strip() or "127.0.0.1"
+MYSQL_PORT = int(os.environ.get("MYSQL_PORT", "3306"))
+MYSQL_USER = os.environ.get("MYSQL_USER", "root").strip() or "root"
+MYSQL_PASSWORD = os.environ.get("MYSQL_PASSWORD", "170424")
+MYSQL_DATABASE = os.environ.get("MYSQL_DATABASE", "casa_tueste").strip() or "casa_tueste"
+
 AUTH_PASSWORD_VALIDATORS = []
 
 LANGUAGE_CODE = "es"
