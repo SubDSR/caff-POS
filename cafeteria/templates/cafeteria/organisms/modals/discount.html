@@ -9,7 +9,7 @@
 
     <form method="post" action="{% url 'cafeteria:apply_discount' %}" class="px-6 py-4">
       {% csrf_token %}
-      {% include 'cafeteria/partials/preserved_state_fields.html' with modal_value='discount' %}
+      {% include 'cafeteria/atoms/preserved_state_fields.html' with modal_value='discount' %}
 
       <div class="mb-4">
         <label for="discount" class="block text-[#3C2415] mb-2">Porcentaje de Descuento</label>
@@ -31,7 +31,7 @@
         </div>
       </div>
 
-      {% include 'cafeteria/partials/modal_feedback.html' %}
+      {% include 'cafeteria/molecules/modal_feedback.html' %}
 
       <div class="flex gap-2">
         <button formaction="{% url 'cafeteria:remove_discount' %}" formmethod="post" formnovalidate class="flex-1 px-4 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition-colors">Quitar Descuento</button>

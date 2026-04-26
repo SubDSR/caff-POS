@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import views
+from cafeteria.presentation.http import views
 
 
 app_name = "cafeteria"

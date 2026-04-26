@@ -32,44 +32,44 @@ class PosViewsTests(TestCase):
 
         self.patchers = [
             patch(
-                "cafeteria.views.get_pos_account_by_email",
+                "cafeteria.infrastructure.persistence.mysql.catalog.get_pos_account_by_email",
                 side_effect=lambda email: self.pos_account if email == self.pos_account["correo"] else None,
             ),
-            patch("cafeteria.views.touch_pos_account_access"),
+            patch("cafeteria.infrastructure.persistence.mysql.catalog.touch_pos_account_access"),
             patch(
-                "cafeteria.views.list_products",
+                "cafeteria.infrastructure.persistence.mysql.catalog.list_products",
                 side_effect=lambda search_query="", selected_category=None: self._filtered_products(search_query, selected_category),
             ),
             patch(
-                "cafeteria.views.get_product_by_id",
+                "cafeteria.infrastructure.persistence.mysql.catalog.get_product_by_id",
                 side_effect=lambda product_id: self.catalog_products.get(int(product_id)),
             ),
             patch(
-                "cafeteria.views.list_promotions",
+                "cafeteria.infrastructure.persistence.mysql.catalog.list_promotions",
                 side_effect=lambda: list(self.promotions.values()),
             ),
             patch(
-                "cafeteria.views.get_promotion_by_id",
+                "cafeteria.infrastructure.persistence.mysql.catalog.get_promotion_by_id",
                 side_effect=lambda promotion_id: self.promotions.get(int(promotion_id)),
             ),
             patch(
-                "cafeteria.views.get_frequent_client",
+                "cafeteria.infrastructure.persistence.mysql.catalog.get_frequent_client",
                 side_effect=lambda dni: self.frequent_clients.get(dni),
             ),
             patch(
-                "cafeteria.views.decrement_frequent_client_balance",
+                "cafeteria.infrastructure.persistence.mysql.catalog.decrement_frequent_client_balance",
                 side_effect=self._decrement_frequent_client_balance,
             ),
             patch(
-                "cafeteria.views.order_exists",
+                "cafeteria.infrastructure.persistence.mysql.catalog.order_exists",
                 side_effect=lambda order_id: any(order["id"] == order_id for order in self.saved_orders),
             ),
             patch(
-                "cafeteria.views.get_order_items_for_repeat",
+                "cafeteria.infrastructure.persistence.mysql.catalog.get_order_items_for_repeat",
                 side_effect=self._get_order_items_for_repeat,
             ),
             patch(
-                "cafeteria.views.create_order",
+                "cafeteria.infrastructure.persistence.mysql.catalog.create_order",
                 side_effect=self._create_order,
             ),
         ]

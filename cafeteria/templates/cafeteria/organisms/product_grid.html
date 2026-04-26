@@ -4,7 +4,7 @@
       {% if selected_category %}
         <div class="mb-6">
           <div class="flex items-center gap-2 mb-4 text-[#3C2415]">
-            {% include 'cafeteria/partials/category_icon.html' with category=selected_category size_class='w-6 h-6' %}
+            {% include 'cafeteria/atoms/category_icon.html' with category=selected_category size_class='w-6 h-6' %}
             <h3 class="font-semibold">{{ selected_category }}</h3>
             <span class="text-sm text-[#6F4E37]/70">({{ products|length }} producto{{ products|length|pluralize:'s' }})</span>
           </div>
@@ -14,11 +14,11 @@
         {% for product in products %}
           <form method="post" action="{% url 'cafeteria:add_to_cart' product.id %}">
             {% csrf_token %}
-            {% include 'cafeteria/partials/preserved_state_fields.html' %}
+            {% include 'cafeteria/atoms/preserved_state_fields.html' %}
             <button type="submit" class="w-full bg-white rounded-xl p-4 shadow-md hover:shadow-xl transition-all duration-200 border border-[#6F4E37]/10 hover:border-[#6F4E37]/40 group">
               <div class="flex flex-col items-center text-center gap-2">
                 <div class="w-16 h-16 rounded-full bg-gradient-to-br from-[#6F4E37]/20 to-[#D4A574]/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  {% include 'cafeteria/partials/category_icon.html' with category=product.category size_class='w-6 h-6' %}
+                  {% include 'cafeteria/atoms/category_icon.html' with category=product.category size_class='w-6 h-6' %}
                 </div>
                 <h4 class="text-[#3C2415] line-clamp-2 font-medium">{{ product.name }}</h4>
                 <p class="text-[#6F4E37]">S/ {{ product.price|floatformat:2 }}</p>

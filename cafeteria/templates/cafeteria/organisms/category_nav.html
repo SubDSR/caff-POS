@@ -13,7 +13,7 @@
 
     {% for category in categories %}
       <a href="{{ category_urls|get_item:category }}" class="flex items-center gap-2 px-6 py-3 rounded-lg transition-all whitespace-nowrap {% if selected_category == category %}bg-[#6F4E37] text-white shadow-lg{% else %}bg-white border-2 border-[#6F4E37]/20 text-[#3C2415] hover:border-[#6F4E37]/40{% endif %}">
-        {% include 'cafeteria/partials/category_icon.html' with category=category size_class='w-5 h-5' %}
+        {% include 'cafeteria/atoms/category_icon.html' with category=category size_class='w-5 h-5' %}
         <span>{{ category }}</span>
       </a>
     {% endfor %}
