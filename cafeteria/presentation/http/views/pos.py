@@ -56,16 +56,14 @@ def index(request: HttpRequest) -> HttpResponse:
     modal = state["modal"]
 
     try:
-        products = catalog.list_products(search_query=search_query, selected_category=selected_category)
+        products, promotions = catalog.get_index_catalog_data(
+            search_query=search_query,
+            selected_category=selected_category,
+        )
     except catalog.MySQLCatalogError:
         products = []
-        messages.error(request, "No se pudo cargar el catálogo desde MySQL")
-
-    try:
-        promotions = catalog.list_promotions()
-    except catalog.MySQLCatalogError:
         promotions = []
-        messages.error(request, "No se pudo cargar las promociones desde MySQL")
+        messages.error(request, "No se pudo cargar el catálogo y promociones desde MySQL")
 
     last_order_id = get_last_order_id(request)
     try:

@@ -64,8 +64,13 @@ def _prepare_django() -> None:
     from django.core.management import call_command
 
     logging.info("Inicializando Django en modo escritorio")
+    django_setup_started_at = time.perf_counter()
     django.setup()
+    logging.info("Django configurado en %.2fs", time.perf_counter() - django_setup_started_at)
+
+    migrate_started_at = time.perf_counter()
     call_command("migrate", interactive=False, run_syncdb=True, verbosity=0)
+    logging.info("Migraciones verificadas en %.2fs", time.perf_counter() - migrate_started_at)
 
 
 def _run_server(port: int) -> None:
@@ -95,6 +100,7 @@ def _wait_for_server(url: str) -> None:
 
 def main() -> None:
     try:
+        startup_started_at = time.perf_counter()
         _configure_logging()
         _prepare_django()
 
@@ -105,7 +111,11 @@ def main() -> None:
         server_thread = threading.Thread(target=_run_server, args=(port,), daemon=True)
         server_thread.start()
         _wait_for_server(healthcheck_url)
-        logging.info("Servidor listo, abriendo ventana en %s", url)
+        logging.info(
+            "Servidor listo en %.2fs, abriendo ventana en %s",
+            time.perf_counter() - startup_started_at,
+            url,
+        )
 
         import webview
 

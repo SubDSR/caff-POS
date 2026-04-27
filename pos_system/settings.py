@@ -182,6 +182,9 @@ MYSQL_PORT = int(mysql_settings["port"])
 MYSQL_USER = str(mysql_settings["user"])
 MYSQL_PASSWORD = str(mysql_settings["password"])
 MYSQL_DATABASE = str(mysql_settings["database"])
+MYSQL_CONNECT_TIMEOUT = int(os.environ.get("MYSQL_CONNECT_TIMEOUT", "5"))
+MYSQL_READ_TIMEOUT = int(os.environ.get("MYSQL_READ_TIMEOUT", "15"))
+MYSQL_WRITE_TIMEOUT = int(os.environ.get("MYSQL_WRITE_TIMEOUT", "15"))
 
 AUTH_PASSWORD_VALIDATORS = []
 

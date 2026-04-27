@@ -41,6 +41,13 @@ class PosViewsTests(TestCase):
                 side_effect=lambda search_query="", selected_category=None: self._filtered_products(search_query, selected_category),
             ),
             patch(
+                "cafeteria.infrastructure.persistence.mysql.catalog.get_index_catalog_data",
+                side_effect=lambda search_query="", selected_category=None: (
+                    self._filtered_products(search_query, selected_category),
+                    list(self.promotions.values()),
+                ),
+            ),
+            patch(
                 "cafeteria.infrastructure.persistence.mysql.catalog.get_product_by_id",
                 side_effect=lambda product_id: self.catalog_products.get(int(product_id)),
             ),
