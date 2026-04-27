@@ -10,7 +10,6 @@ datas = [(str(project_root / "staticfiles"), "staticfiles")]
 
 for source_path, target_path in (
     (project_root / "cafeteria" / "templates", "cafeteria/templates"),
-    (project_root / "templates", "templates"),
 ):
     if source_path.exists():
         datas.append((str(source_path), target_path))
@@ -18,7 +17,7 @@ for source_path, target_path in (
 binaries = []
 hiddenimports = []
 
-for package_name in ("django", "pymysql", "waitress", "webview", "whitenoise"):
+for package_name in ("cryptography", "django", "pymysql", "waitress", "webview", "whitenoise"):
     package_datas, package_binaries, package_hiddenimports = collect_all(package_name)
     datas += package_datas
     binaries += package_binaries

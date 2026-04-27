@@ -1,9 +1,13 @@
 import os
 from pathlib import Path
+from urllib.parse import unquote, urlparse
 
 import dj_database_url
 
-from .runtime import ensure_data_dir, get_bundle_dir, is_desktop_mode, is_frozen
+from .runtime import ensure_data_dir, get_bundle_dir, is_desktop_mode, is_frozen, load_env_files
+
+
+load_env_files()
 
 
 BASE_DIR = get_bundle_dir()
@@ -70,10 +74,7 @@ TEMPLATES = [
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "DIRS": [
             template_dir
-            for template_dir in (
-                BASE_DIR / "templates",
-                BASE_DIR / "cafeteria" / "templates",
-            )
+            for template_dir in (BASE_DIR / "cafeteria" / "templates",)
             if Path(template_dir).exists()
         ],
         "APP_DIRS": True,
@@ -104,11 +105,41 @@ DATABASES = {
     )
 }
 
-MYSQL_HOST = os.environ.get("MYSQL_HOST", "127.0.0.1").strip() or "127.0.0.1"
-MYSQL_PORT = int(os.environ.get("MYSQL_PORT", "3306"))
-MYSQL_USER = os.environ.get("MYSQL_USER", "root").strip() or "root"
-MYSQL_PASSWORD = os.environ.get("MYSQL_PASSWORD", "170424")
-MYSQL_DATABASE = os.environ.get("MYSQL_DATABASE", "casa_tueste").strip() or "casa_tueste"
+
+def _mysql_settings_from_url() -> dict[str, str | int] | None:
+    for env_name in ("MYSQL_PUBLIC_URL", "MYSQL_URL"):
+        raw_url = os.environ.get(env_name, "").strip()
+        if not raw_url:
+            continue
+
+        parsed_url = urlparse(raw_url)
+        if parsed_url.scheme != "mysql":
+            raise RuntimeError(f"{env_name} must use the mysql:// scheme")
+
+        database_name = parsed_url.path.lstrip("/")
+        if not parsed_url.hostname or not parsed_url.username or not database_name:
+            raise RuntimeError(f"{env_name} is missing required MySQL connection data")
+
+        return {
+            "host": parsed_url.hostname,
+            "port": int(parsed_url.port or 3306),
+            "user": unquote(parsed_url.username),
+            "password": unquote(parsed_url.password or ""),
+            "database": unquote(database_name),
+        }
+
+    return None
+
+
+mysql_url_settings = _mysql_settings_from_url() or {}
+
+MYSQL_HOST = str(mysql_url_settings.get("host") or os.environ.get("MYSQL_HOST", "127.0.0.1").strip() or "127.0.0.1")
+MYSQL_PORT = int(mysql_url_settings.get("port") or os.environ.get("MYSQL_PORT", "3306"))
+MYSQL_USER = str(mysql_url_settings.get("user") or os.environ.get("MYSQL_USER", "root").strip() or "root")
+MYSQL_PASSWORD = str(mysql_url_settings.get("password") or os.environ.get("MYSQL_PASSWORD", "170424"))
+MYSQL_DATABASE = str(
+    mysql_url_settings.get("database") or os.environ.get("MYSQL_DATABASE", "casa_tueste").strip() or "casa_tueste"
+)
 
 AUTH_PASSWORD_VALIDATORS = []
 

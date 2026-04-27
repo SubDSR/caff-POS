@@ -47,6 +47,21 @@ Los errores de arranque quedan registrados en `%LOCALAPPDATA%\CaffPOS\logs\deskt
 
 ## Variables de entorno MySQL
 
+La app ahora admite dos formas de configuracion:
+
+- `MYSQL_PUBLIC_URL` para conexiones externas al cluster de Railway, como el `.exe` en Windows
+- `MYSQL_URL` para conexiones internas dentro de Railway
+- variables individuales `MYSQL_HOST`, `MYSQL_PORT`, `MYSQL_USER`, `MYSQL_PASSWORD`, `MYSQL_DATABASE`
+
+El orden de prioridad es `MYSQL_PUBLIC_URL`, luego `MYSQL_URL` y por ultimo las variables individuales.
+
+Tambien se carga automaticamente un archivo `.env` si existe en alguno de estos lugares:
+
+- el directorio actual desde el que se ejecuta la app
+- la raiz del proyecto durante desarrollo
+- la carpeta que contiene `CaffPOS.exe`
+- `%LOCALAPPDATA%\CaffPOS\.env`
+
 Si no defines variables, la app intentara conectarse con estos valores por defecto:
 
 - `MYSQL_HOST=127.0.0.1`
