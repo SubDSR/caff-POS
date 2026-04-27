@@ -10,6 +10,7 @@ datas = [(str(project_root / "staticfiles"), "staticfiles")]
 
 for source_path, target_path in (
     (project_root / "cafeteria" / "templates", "cafeteria/templates"),
+    (project_root / ".env", "."),
 ):
     if source_path.exists():
         datas.append((str(source_path), target_path))

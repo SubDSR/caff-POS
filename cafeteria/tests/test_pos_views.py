@@ -151,6 +151,18 @@ class PosViewsTests(TestCase):
         self.assertRedirects(response, reverse("cafeteria:index"))
         self.assertTrue(self.client.session.get("is_logged_in"))
 
+    def test_login_with_malformed_password_hash_returns_invalid_credentials(self) -> None:
+        self.pos_account["password_hash"] = "reemplazar_con_hash_real"
+
+        response = self.client.post(
+            reverse("cafeteria:login"),
+            {"username": "modulo.puntoventa@gmail.com", "password": "admin"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Credenciales inválidas")
+        self.assertFalse(self.client.session.get("is_logged_in"))
+
     def test_add_to_cart_creates_session_item(self) -> None:
         self.login()
 

@@ -76,6 +76,7 @@ def load_env_files() -> None:
     candidate_paths = [
         Path.cwd() / ".env",
         get_source_dir() / ".env",
+        get_bundle_dir() / ".env",
         get_executable_dir() / ".env",
         get_data_dir() / ".env",
     ]

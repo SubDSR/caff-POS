@@ -131,15 +131,57 @@ def _mysql_settings_from_url() -> dict[str, str | int] | None:
     return None
 
 
-mysql_url_settings = _mysql_settings_from_url() or {}
+def _missing_mysql_config_message() -> str:
+    app_env_path = DATA_DIR / ".env"
+    return (
+        "Missing MySQL configuration. Define MYSQL_PUBLIC_URL or MYSQL_URL, or set MYSQL_HOST, "
+        "MYSQL_USER and MYSQL_DATABASE (optionally MYSQL_PORT and MYSQL_PASSWORD). "
+        f"For the desktop .exe, place a .env file at {app_env_path} or configure Windows environment variables."
+    )
 
-MYSQL_HOST = str(mysql_url_settings.get("host") or os.environ.get("MYSQL_HOST", "127.0.0.1").strip() or "127.0.0.1")
-MYSQL_PORT = int(mysql_url_settings.get("port") or os.environ.get("MYSQL_PORT", "3306"))
-MYSQL_USER = str(mysql_url_settings.get("user") or os.environ.get("MYSQL_USER", "root").strip() or "root")
-MYSQL_PASSWORD = str(mysql_url_settings.get("password") or os.environ.get("MYSQL_PASSWORD", "170424"))
-MYSQL_DATABASE = str(
-    mysql_url_settings.get("database") or os.environ.get("MYSQL_DATABASE", "casa_tueste").strip() or "casa_tueste"
-)
+
+def _mysql_settings_from_env() -> dict[str, str | int]:
+    mysql_url_settings = _mysql_settings_from_url()
+    if mysql_url_settings:
+        return mysql_url_settings
+
+    host = os.environ.get("MYSQL_HOST", "").strip()
+    port = os.environ.get("MYSQL_PORT", "3306").strip() or "3306"
+    user = os.environ.get("MYSQL_USER", "").strip()
+    password = os.environ.get("MYSQL_PASSWORD", "")
+    database = os.environ.get("MYSQL_DATABASE", "").strip()
+
+    if not any((host, user, password, database, os.environ.get("MYSQL_PORT", "").strip())):
+        raise RuntimeError(_missing_mysql_config_message())
+
+    missing_fields = []
+    if not host:
+        missing_fields.append("MYSQL_HOST")
+    if not user:
+        missing_fields.append("MYSQL_USER")
+    if not database:
+        missing_fields.append("MYSQL_DATABASE")
+
+    if missing_fields:
+        missing_fields_text = ", ".join(missing_fields)
+        raise RuntimeError(f"Missing required MySQL settings: {missing_fields_text}. {_missing_mysql_config_message()}")
+
+    return {
+        "host": host,
+        "port": int(port),
+        "user": user,
+        "password": password,
+        "database": database,
+    }
+
+
+mysql_settings = _mysql_settings_from_env()
+
+MYSQL_HOST = str(mysql_settings["host"])
+MYSQL_PORT = int(mysql_settings["port"])
+MYSQL_USER = str(mysql_settings["user"])
+MYSQL_PASSWORD = str(mysql_settings["password"])
+MYSQL_DATABASE = str(mysql_settings["database"])
 
 AUTH_PASSWORD_VALIDATORS = []
 

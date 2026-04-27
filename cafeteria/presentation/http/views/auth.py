@@ -1,11 +1,24 @@
 from __future__ import annotations
 
+import logging
+
 from django.contrib import messages
 from django.contrib.auth.hashers import check_password
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
 
 from cafeteria.infrastructure.persistence.mysql import catalog
+
+
+logger = logging.getLogger(__name__)
+
+
+def _password_matches(raw_password: str, encoded_password: str) -> bool:
+    try:
+        return check_password(raw_password, encoded_password)
+    except ValueError:
+        logger.warning("Stored POS password hash is malformed and was ignored")
+        return False
 
 
 def login_view(request: HttpRequest) -> HttpResponse:
@@ -22,7 +35,7 @@ def login_view(request: HttpRequest) -> HttpResponse:
                 messages.error(request, "No se pudo conectar a la base de datos MySQL")
                 return render(request, "cafeteria/pages/login.html")
 
-            if account and account["activa"] and check_password(password, account["password_hash"]):
+            if account and account["activa"] and _password_matches(password, account["password_hash"]):
                 try:
                     catalog.touch_pos_account_access(account["correo"])
                 except catalog.MySQLCatalogError:

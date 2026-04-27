@@ -47,7 +47,7 @@ Los errores de arranque quedan registrados en `%LOCALAPPDATA%\CaffPOS\logs\deskt
 
 ## Variables de entorno MySQL
 
-La app ahora admite dos formas de configuracion:
+La app admite dos formas de configuracion:
 
 - `MYSQL_PUBLIC_URL` para conexiones externas al cluster de Railway, como el `.exe` en Windows
 - `MYSQL_URL` para conexiones internas dentro de Railway
@@ -59,16 +59,27 @@ Tambien se carga automaticamente un archivo `.env` si existe en alguno de estos 
 
 - el directorio actual desde el que se ejecuta la app
 - la raiz del proyecto durante desarrollo
+- el bundle temporal extraido por PyInstaller desde `CaffPOS.exe`
 - la carpeta que contiene `CaffPOS.exe`
 - `%LOCALAPPDATA%\CaffPOS\.env`
 
-Si no defines variables, la app intentara conectarse con estos valores por defecto:
+La app ya no usa credenciales MySQL por defecto. Si falta la configuracion, el arranque falla con un error explicito para evitar conexiones inseguras o ambiguas.
 
-- `MYSQL_HOST=127.0.0.1`
-- `MYSQL_PORT=3306`
-- `MYSQL_USER=root`
-- `MYSQL_PASSWORD=170424`
-- `MYSQL_DATABASE=casa_tueste`
+### Empaquetar `.env` dentro del `.exe`
+
+Si existe un `.env` en la raiz del proyecto al momento de compilar, `desktop.spec` lo incluye dentro del ejecutable y la app lo carga al arrancar.
+
+Para este modo, basta compilar con el `.env` correcto presente en la raiz del proyecto.
+
+Ejemplo de `%LOCALAPPDATA%\CaffPOS\.env`:
+
+```dotenv
+MYSQL_PUBLIC_URL=mysql://usuario:password@host:puerto/base
+DJANGO_SECRET_KEY=un-secreto-largo-y-aleatorio
+DJANGO_DEBUG=False
+```
+
+Si el `.exe` va a seguir conectando directo a MySQL, crea un usuario dedicado con privilegios minimos y rota las credenciales periodicamente. Para una arquitectura realmente segura, mueve el acceso a MySQL a un backend/API y deja que el `.exe` consuma solo ese backend.
 
 ## Alternativa con Nuitka
 
